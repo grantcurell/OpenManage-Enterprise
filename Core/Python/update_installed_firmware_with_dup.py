@@ -52,16 +52,16 @@ python update_installed_firmware_with_dup.py --ip <ip addr> --user admin
 8. If job fails then GET Job Execution History Details
    and print info to screen
 """
-import os
-import sys
-import copy
-import time
 import argparse
+import copy
+import json
+import os
+import time
 from argparse import RawTextHelpFormatter
 from getpass import getpass
-import json
-import urllib3
+
 import requests
+import urllib3
 
 
 def authenticate_with_ome(ip_address, user_name, password):
@@ -101,27 +101,27 @@ def get_group_list(ip_address, headers):
 
 
 def get_device_list(ip_address, headers):
-	""" Get list of devices from OME """
-	ome_device_list = []
-	next_link_url = 'https://%s/api/DeviceService/Devices' % ip_address
-	while next_link_url is not None:
-		device_response = requests.get(next_link_url, headers=headers, verify=False)
-		next_link_url = None
-		if device_response.status_code == 200:
-			dev_json_response = device_response.json()
-			if dev_json_response['@odata.count'] <= 0:
-				print("No devices found at ", ip_address)
-				return
+    """ Get list of devices from OME """
+    ome_device_list = []
+    next_link_url = 'https://%s/api/DeviceService/Devices' % ip_address
+    while next_link_url is not None:
+        device_response = requests.get(next_link_url, headers=headers, verify=False)
+        next_link_url = None
+        if device_response.status_code == 200:
+            dev_json_response = device_response.json()
+            if dev_json_response['@odata.count'] <= 0:
+                print("No devices found at ", ip_address)
+                return
 
-			if '@odata.nextLink' in dev_json_response:
-				next_link_url = 'https://%s/' %ip_address + dev_json_response['@odata.nextLink']
+            if '@odata.nextLink' in dev_json_response:
+                next_link_url = 'https://%s/' % ip_address + dev_json_response['@odata.nextLink']
 
-			if dev_json_response['@odata.count'] > 0:
-				ome_device_list = ome_device_list + [x['Id'] for x in dev_json_response['value']]
-		else:
-			print("No devices found at ", ip_address)
+            if dev_json_response['@odata.count'] > 0:
+                ome_device_list = ome_device_list + [x['Id'] for x in dev_json_response['value']]
+        else:
+            print("No devices found at ", ip_address)
 
-	return ome_device_list
+    return ome_device_list
 
 
 def upload_dup_file(ip_address, headers, file_path):
@@ -158,7 +158,7 @@ def get_dup_applicability_payload(file_token, param_map):
                                  'SingleUpdateReportGroup': [],
                                  'SingleUpdateReportTargets': [],
                                  'SingleUpdateReportFileToken': file_token
-                                }
+                                 }
 
     if param_map['group_id']:
         dup_applicability_payload['SingleUpdateReportGroup'].append(param_map['group_id'])
@@ -209,7 +209,6 @@ def get_applicable_components(ip_address, headers, dup_payload):
                     temp_map['TargetType']['Id'] = int(device['DeviceReport']['DeviceTypeId'])
                     temp_map['TargetType']['Name'] = str(device['DeviceReport']['DeviceTypeName'])
                     target_data.append(temp_map)
-                    #print "%s : Adding component %s to upgrade list" % (device_ip, comp_name)
     else:
         print("Unable to get components DUP applies to .. Exiting")
     return target_data
@@ -325,6 +324,7 @@ def track_job_to_completion(ip_address, headers, job_id):
             print("Unable to poll status of %s - Iteration %s " % (job_id, loop_ctr))
     if job_incomplete:
         print("Job %s incomplete after polling %s times...Check status" % (job_id, max_retries))
+
 
 if __name__ == '__main__':
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)

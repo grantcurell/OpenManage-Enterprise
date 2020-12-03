@@ -32,8 +32,8 @@ Authentication. Note: The credentials entered are not stored to disk.
 import argparse
 import json
 from argparse import RawTextHelpFormatter
-from urllib.parse import urlparse
 from getpass import getpass
+from urllib.parse import urlparse
 
 import requests
 import urllib3

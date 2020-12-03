@@ -52,8 +52,8 @@ import os
 import sys
 import time
 from argparse import RawTextHelpFormatter
-from pprint import pprint
 from getpass import getpass
+from pprint import pprint
 
 try:
     import urllib3
@@ -364,7 +364,7 @@ if __name__ == '__main__':
     user_name = args.user
     if args.password:
         password = args.password
-    else
+    else:
         password = getpass("Password for OME Appliance: ")
     discover_user_name = args.targetUserName
     if args.targetPassword:

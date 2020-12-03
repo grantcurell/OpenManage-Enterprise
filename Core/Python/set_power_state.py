@@ -33,14 +33,14 @@ where {state} can be "POWER_ON", "POWER_OFF_GRACEFUL", "POWER_CYCLE", "POWER_OFF
 """
 
 import argparse
+import csv
 import json
 import sys
 import time
-import csv
-from pprint import pprint
-from urllib.parse import urlparse
 from argparse import RawTextHelpFormatter
 from getpass import getpass
+from pprint import pprint
+from urllib.parse import urlparse
 
 try:
     import urllib3
@@ -490,7 +490,7 @@ if __name__ == '__main__':
         else:
             groups = None
 
-        if device_ids_arg is None and service_tags is None and device_idrac_ips is None and device_names is None\
+        if device_ids_arg is None and service_tags is None and device_idrac_ips is None and device_names is None \
                 and args.groupname is None:
             print("Error: You must provide one or more of the following: device IDs, service tags, idrac IPs, or "
                   "device names.")
@@ -552,5 +552,3 @@ if __name__ == '__main__':
 
     except Exception as error:
         pprint(error)
-
-

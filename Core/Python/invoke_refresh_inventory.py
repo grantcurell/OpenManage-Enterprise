@@ -33,10 +33,9 @@ import json
 import sys
 import time
 from argparse import RawTextHelpFormatter
-from pprint import pprint
-from typing import List
-from urllib.parse import urlparse
 from getpass import getpass
+from pprint import pprint
+from urllib.parse import urlparse
 
 try:
     import urllib3
@@ -627,4 +626,3 @@ if __name__ == '__main__':
 
     except Exception as error:
         print("Unexpected error:", str(error))
-

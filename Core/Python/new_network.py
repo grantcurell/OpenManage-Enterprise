@@ -35,8 +35,8 @@ import csv
 import json
 import sys
 from argparse import RawTextHelpFormatter
-from os import path
 from getpass import getpass
+from os import path
 
 import requests
 import urllib3
