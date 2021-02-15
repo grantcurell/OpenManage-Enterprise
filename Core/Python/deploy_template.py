@@ -525,6 +525,8 @@ if __name__ == '__main__':
             ############################
 
             # TODO Possible enhancement - make these configurable
+            # TODO Possible enhancement - make it so you can use a preconfigured identity pool.
+            # See: https://github.com/dell/OpenManage-Enterprise/issues/201
 
             identity_pool_payload = {
                 "Name": name,
