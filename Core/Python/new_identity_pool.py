@@ -61,8 +61,6 @@ except ModuleNotFoundError:
           "urllib3`")
     sys.exit(0)
 
-session_auth_token = {}
-
 
 def authenticate(ome_ip_address: str, ome_username: str, ome_password: str) -> dict:
     """
@@ -102,6 +100,33 @@ def authenticate(ome_ip_address: str, ome_username: str, ome_password: str) -> d
                     "password, and IP?")
 
 
+def post_data(url: str, authenticated_headers: dict, payload: dict, error_message: str) -> dict:
+    """
+    Posts data to OME and returns the results
+
+    Args:
+        url: The URL to which you want to post
+        authenticated_headers: Headers used for authentication to the OME server
+        payload: A payload to post to the OME server
+        error_message: If the POST fails this is the message which will be displayed to the user
+
+    Returns: A dictionary with the results of the post request or an empty dictionary in the event of a failure. If the
+             result is a 204 - No Content (which indicates success but there is no data) then it will return a
+             dictionary with the value {'status_code': 204}
+
+    """
+    response = requests.post(url, headers=authenticated_headers, verify=False, data=json.dumps(payload))
+
+    if response.status_code == 204:
+        return {'status_code': 204}
+    if response.status_code != 400:
+        return json.loads(response.content)
+    else:
+        print(error_message + " Error was:")
+        pprint(json.loads(response.content))
+        return {}
+
+
 def mac_to_base64_conversion(mac_address):
     try:
         if mac_address:
@@ -117,7 +142,7 @@ def mac_to_base64_conversion(mac_address):
 
 
 def create_id_pool(
-        base_uri,
+        ome_ip_address,
         headers,
         Name,
         EthernetSettings_IdentityCount,
@@ -181,31 +206,23 @@ def create_id_pool(
     }
 
     id_pool_id = None
-    if IscsiSettings_IdentityCount != '' \
-            and (IscsiSettings_InitiatorConfig_IqnPrefix == ''
-                 or IscsiSettings_InitiatorIpPoolSettings_IpRange == ''):
+    if IscsiSettings_IdentityCount != '' and (IscsiSettings_InitiatorConfig_IqnPrefix == '' or IscsiSettings_InitiatorIpPoolSettings_IpRange == ''):
         print('Skipping creation of ID pool %s' % Name)
         print('When the iSCSI Initiator configuration is enabled, the IQN prefix and IP Range must be non-empty')
         id_pool_id = 'skip'
         exit()
 
-    network_url = base_uri \
-                  + '/api/IdentityPoolService/IdentityPools'
-    network_response = requests.post(network_url, headers=headers,
-                                     verify=False, data=json.dumps(identity_pool_payload))
+    network_url = "https://%s/api/IdentityPoolService/IdentityPools" % ome_ip_address
+    network_response = post_data(network_url, headers, identity_pool_payload,
+                                 "There was a problem posting the identity pool payload!")
 
-    if network_response.status_code == 201 \
-            or network_response.status_code == 200:
-        network_data = network_response.json()
-        id_pool_id = network_data['Id']
-    elif network_response.status_code == 400 \
-            or network_response.status_code == 500:
-        print('Failed ID pool creation... ')
-        print('Network Payload:')
-        print(identity_pool_payload)
-        print('')
-        print('json dump...')
-        print(json.dumps(network_response.json(), indent=4, sort_keys=False))
+    if network_response:
+        id_pool_id = network_response['Id']
+    else:
+        print('Identity pool creation failed!')
+        print('Identity pool payload:')
+        pprint(identity_pool_payload)
+        return -1
 
     return id_pool_id
 
